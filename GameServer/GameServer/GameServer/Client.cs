@@ -29,6 +29,9 @@ namespace GameServer
 
 
             private NetworkStream stream;
+
+            private Packet receivedData;
+
             private byte[] receiveBuffer;
 
             public TCP(int id)
@@ -45,11 +48,28 @@ namespace GameServer
 
                 stream = socket.GetStream();
 
+                receivedData = new Packet();
+
                 receiveBuffer = new byte[dataBufferSize];
 
                 stream.BeginRead(receiveBuffer, 0, dataBufferSize, ReceiveCallback, null);
 
-                //TODO: send welcome packet
+                ServerSend.Welcome(id, "Welcome to the server");
+            }
+
+            public void SendData(Packet packet)
+            {
+                try
+                {
+                    if (socket != null)
+                    {
+                        stream.BeginWrite(packet.ToArray(), 0, packet.Length(), null, null);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Error sending data to player {id} via TCP: {e}");
+                }
             }
 
             private void ReceiveCallback(IAsyncResult result)
@@ -57,7 +77,7 @@ namespace GameServer
                 try
                 {
                     int byteLenght = stream.EndRead(result);
-                    if(byteLenght <= 0)
+                    if (byteLenght <= 0)
                     {
                         //TODO: disconnect
                         return;
@@ -66,14 +86,61 @@ namespace GameServer
                     byte[] data = new byte[byteLenght];
                     Array.Copy(receiveBuffer, data, byteLenght);
 
-                    //TODO: handle data
+                    receivedData.Reset(HandledData(data));
+
+
                     stream.BeginRead(receiveBuffer, 0, dataBufferSize, ReceiveCallback, null);
 
-                }catch(Exception e)
+                }
+                catch (Exception e)
                 {
                     Console.WriteLine($"Error receiving TCP data: {e}");
                     //TODO: disconnet
                 }
+            }
+
+            private bool HandledData(byte[] data)
+            {
+                int packetLength = 0;
+
+                receivedData.SetBytes(data);
+
+                if (receivedData.UnreadLength() >= 4)
+                {
+                    packetLength = receivedData.ReadInt();
+
+                    if (packetLength <= 0)
+                        return true;
+                }
+
+                while (packetLength > 0 && packetLength <= receivedData.UnreadLength())
+                {
+                    byte[] packetBytes = receivedData.ReadBytes(packetLength);
+
+                    ThreadManager.ExecuteOnMainThread(() =>
+                    {
+                        using (Packet packet = new Packet(packetBytes))
+                        {
+                            int packetId = packet.ReadInt();
+                            Server.packetHandlers[packetId](id, packet);
+                        }
+                    });
+
+                    packetLength = 0;
+
+                    if (receivedData.UnreadLength() >= 4)
+                    {
+                        packetLength = receivedData.ReadInt();
+
+                        if (packetLength <= 0)
+                            return true;
+                    }
+                }
+
+                if (packetLength <= 1)
+                    return true;
+
+                return false;
             }
 
         }

@@ -12,6 +12,8 @@ namespace GameServer
         public static int Port { get; private set; }
 
         public static Dictionary<int, Client> clients = new Dictionary<int, Client>();
+        public delegate void PacketHandler(int fromClient, Packet packet);
+        public static Dictionary<int, PacketHandler> packetHandlers;
 
         private static TcpListener tcpListener;
 
@@ -40,7 +42,7 @@ namespace GameServer
 
             Console.WriteLine($"Incoming connect from {client.Client.RemoteEndPoint}...");
 
-            for (int i = 1; i < MaxPlayers; i++)
+            for (int i = 1; i <= MaxPlayers; i++)
             {
                 if(clients[i].tcp.socket == null)
                 {
@@ -58,6 +60,13 @@ namespace GameServer
             {
                 clients.Add(i, new Client(i));
             }
+
+            packetHandlers = new Dictionary<int, PacketHandler>()
+            {
+
+                {(int)ClientPackets.welcomeReceived, ServerHandle.WelcomeReceived}
+            };
+            Console.WriteLine("Initialized packets");
         }
     }
 }
