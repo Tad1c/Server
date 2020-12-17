@@ -16,6 +16,7 @@ namespace GameServer
         public static Dictionary<int, PacketHandler> packetHandlers;
 
         private static TcpListener tcpListener;
+        private static UdpClient udpListener;
 
         public static void Start(int maxPlayers, int port)
         {
@@ -29,7 +30,69 @@ namespace GameServer
             tcpListener.Start();
             tcpListener.BeginAcceptTcpClient(new AsyncCallback(TCPConnectCallback), null);
 
+            udpListener = new UdpClient(Port);
+            udpListener.BeginReceive(UDPReceiveCallback, null);
+
             Console.WriteLine($"Server started on {Port}");
+        }
+
+        private static void UDPConnectCallback(IAsyncResult result)
+        {
+
+        }
+
+        private static void UDPReceiveCallback(IAsyncResult result)
+        {
+            try
+            {
+                IPEndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                byte[] data = udpListener.EndReceive(result, ref clientEndPoint);
+
+                udpListener.BeginReceive(UDPReceiveCallback, null);
+
+                if (data.Length < 4)
+                {
+                    return;
+                }
+
+                using (Packet packet = new Packet(data))
+                {
+                    int clientId = packet.ReadInt();
+
+                    if (clientId == 0)
+                        return;
+
+                    if (clients[clientId].udp.endPoint == null)
+                    {
+                        clients[clientId].udp.Connect(clientEndPoint);
+                        return;
+                    }
+
+                    if (clients[clientId].udp.endPoint.ToString() == clientEndPoint.ToString())
+                    {
+                        clients[clientId].udp.HandleData(packet);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error receiving UDP data: {e}");
+            }
+        }
+
+        public static void SendUDPData(IPEndPoint clientEndPoint, Packet packet)
+        {
+            try
+            {
+                if(clientEndPoint != null)
+                {
+                    udpListener.BeginSend(packet.ToArray(), packet.Length(), clientEndPoint, null, null);
+                }
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine($"Error sending data to {clientEndPoint} via UDP {e}");
+            }
         }
 
         private static void TCPConnectCallback(IAsyncResult result)
@@ -64,7 +127,8 @@ namespace GameServer
             packetHandlers = new Dictionary<int, PacketHandler>()
             {
 
-                {(int)ClientPackets.welcomeReceived, ServerHandle.WelcomeReceived}
+                {(int)ClientPackets.welcomeReceived, ServerHandle.WelcomeReceived},
+                {(int)ClientPackets.udpTestReceive, ServerHandle.UDPTestReceived}
             };
             Console.WriteLine("Initialized packets");
         }
