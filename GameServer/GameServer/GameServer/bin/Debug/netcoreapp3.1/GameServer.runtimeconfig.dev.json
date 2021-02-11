@@ -1,0 +1,8 @@
+{
+  "runtimeOptions": {
+    "additionalProbingPaths": [
+      "C:\\Users\\simet\\.dotnet\\store\\|arch|\\|tfm|",
+      "C:\\Users\\simet\\.nuget\\packages"
+    ]
+  }
+}
