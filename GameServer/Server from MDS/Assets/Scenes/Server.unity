@@ -340,6 +340,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 3479711736023880253, guid: 15d230aac3607bf4297974986aafcdf7,
     type: 3}
+  projectilePrefab: {fileID: 4646152587436197091, guid: 8ec5e9ce09aeb6a4f9b93aff02d955c1,
+    type: 3}
 --- !u!4 &1145119532
 Transform:
   m_ObjectHideFlags: 0
@@ -383,7 +385,7 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 4
+  serializedVersion: 3
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
@@ -443,7 +445,7 @@ Transform:
   m_GameObject: {fileID: 1730885809}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 3, y: 3, z: 3}
+  m_LocalScale: {x: 6, y: 6, z: 6}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3

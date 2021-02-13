@@ -24,17 +24,17 @@ public class Server
 
         Debug.Log("Starting server...");
         InitializeServerData();
+        
+        IPAddress ipAddress = IPAddress.Any;
 
-        IPAddress localAddr = IPAddress.Parse("192.168.5.38");
-
-        tcpListener = new TcpListener(localAddr, Port);
+        tcpListener = new TcpListener(ipAddress, Port);
         tcpListener.Start();
         tcpListener.BeginAcceptTcpClient(new AsyncCallback(TCPConnectCallback), null);
 
         udpListener = new UdpClient(Port);
         udpListener.BeginReceive(UDPReceiveCallback, null);
 
-        Debug.Log($"Server started on {Port}");
+        Debug.Log($"Server started on {ipAddress}:{Port}");
     }
 
     public static void Stop()
@@ -136,6 +136,7 @@ public class Server
 
                 {(int)ClientPackets.welcomeReceived, ServerHandle.WelcomeReceived},
                 {(int)ClientPackets.playerMovement, ServerHandle.PlayerMovement},
+                {(int)ClientPackets.shootProjectile, ServerHandle.PlayerShootProjectile},
                 {(int)ClientPackets.playerShoot, ServerHandle.PlayerShoot}
 
                // {(int)ClientPackets.udpTestReceive, ServerHandle.UDPTestReceived}

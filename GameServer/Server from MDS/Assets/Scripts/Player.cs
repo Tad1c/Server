@@ -17,6 +17,7 @@ public class Player : MonoBehaviour
     public float health;
     public float maxHealht = 100;
 
+    public int projectileForce = 200;
 
     private bool[] inputs;
     private float yVelocity = 0;
@@ -25,6 +26,8 @@ public class Player : MonoBehaviour
 
     [SerializeField]
     private float distanceCheck;
+
+    private bool stunned = false;
 
     private void Start()
     {
@@ -62,25 +65,36 @@ public class Player : MonoBehaviour
 
         Vector2 inputDirection = Vector2.zero;
 
+        // W
         if (inputs[0])
             inputDirection.y += 1;
 
+        // S
         if (inputs[1])
             inputDirection.y -= 1;
 
+        // A
         if (inputs[2])
             inputDirection.x -= 1;
 
+        // D
         if (inputs[3])
             inputDirection.x += 1;
 
-        Move(inputDirection);
+        if (!stunned) {
+            Move(inputDirection);
+        }
+        else {
+            ServerSend.PlayerPosition(this);
+            ServerSend.PlayerRotation(this);
+        }
+        
     }
 
     private void Move(Vector2 inputDirection)
     {
 
-        Vector3 moveDirection = transform.right * inputDirection.x + transform.forward * inputDirection.y;
+        Vector3 moveDirection = new Vector3(inputDirection.x, 0f, inputDirection.y);//transform.right * inputDirection.x + transform.forward * inputDirection.y;
 
         moveDirection *= moveSpeed;
 
@@ -109,14 +123,27 @@ public class Player : MonoBehaviour
             if (hit.collider.CompareTag("Player"))
             {
                 hit.collider.GetComponent<Player>().TakeDamage(5);
-                hit.collider.GetComponent<Player>().MoveBackwardsOnHit(-hit.transform.forward, 400);
+                //hit.collider.GetComponent<Player>().MoveBackwardsOnHit(-hit.transform.forward, 200);
             }
         }
     }
 
-    public void MoveBackwardsOnHit(Vector3 pos, float impact)
+    public void ShootProjectile(Vector3 viewDirection)
     {
-        controller.AddForce(pos * impact, ForceMode.Impulse);
+        NetworkManager.instance.InstanciateProjectile(shootOrigin).Init(viewDirection, projectileForce, id);
+    }
+
+    public void HitByProjectile(Vector3 direction)
+    {
+        StartCoroutine(stunCountdown(direction));
+    }
+
+    private IEnumerator stunCountdown(Vector3 dir)
+    {
+        stunned = true;
+        controller.AddForce(dir * 200f);
+        yield return new WaitForSeconds(0.5f);
+        stunned = false;
     }
 
     public void TakeDamage(float dmg)

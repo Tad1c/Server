@@ -134,6 +134,44 @@ public class ServerSend
     }
 
 
+    #region ProjectileShit
+    public static void InstantiateBasicProjectile(BasicProjectile basicProjectile, int playerId)
+    {
+        using (Packet packet = new Packet((int)ServerPackets.projectileShoot))
+        {
+            packet.Write(basicProjectile.id);
+            packet.Write(playerId);
+            packet.Write(basicProjectile.transform.position);
+
+            SendTCPDataToAll(packet);
+        }
+    }
+    
+    
+    public static void DestroyBasicProjectile(BasicProjectile basicProjectile)
+    {
+        using (Packet packet = new Packet((int)ServerPackets.projectileDestroy))
+        {
+            packet.Write(basicProjectile.id);
+            packet.Write(basicProjectile.transform.position);
+
+            SendTCPDataToAll(packet);
+        }
+    }    
+    
+    public static void ProjectilePosition(BasicProjectile basicProjectile)
+    {
+        using (Packet packet = new Packet((int)ServerPackets.projectilePosition))
+        {
+            packet.Write(basicProjectile.id);
+            packet.Write(basicProjectile.transform.position);
+
+            SendTCPDataToAll(packet);
+        }
+    }
+    #endregion
+
+
 
     //public static void UDPTest(int toClient)
     //{
