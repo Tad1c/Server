@@ -27,6 +27,9 @@ public class Player : MonoBehaviour
 
     private bool stunned = false;
 
+    private bool isHit;
+    private Vector3 hitDirection;
+
     private void Start()
     {
         //  gravity *= Time.fixedDeltaTime * Time.fixedDeltaTime;
@@ -61,7 +64,7 @@ public class Player : MonoBehaviour
         if (health <= 0)
             return;
 
-        Vector2 inputDirection = Vector2.zero;
+        Vector3 inputDirection = Vector3.zero;
 
         // W
         if (inputs[0])
@@ -79,14 +82,27 @@ public class Player : MonoBehaviour
         if (inputs[3])
             inputDirection.x += 1;
 
-        if (!stunned) {
-            Move(inputDirection);
-        }
-        else {
+        // if (!stunned) {
+
+        if (stunned)
+        {
+            // inputDirection = hitDirection;
+            // isHit = false;
             ServerSend.PlayerPosition(this);
             ServerSend.PlayerRotation(this);
         }
-        
+        else
+        {
+            Move(inputDirection);
+        }
+
+
+
+        // }
+        // else {
+        //     
+        // }
+
     }
 
     private void Move(Vector2 inputDirection)
@@ -133,6 +149,8 @@ public class Player : MonoBehaviour
 
     public void HitByProjectile(Vector3 direction)
     {
+        // isHit = true;
+        // hitDirection = direction;
         StartCoroutine(stunCountdown(direction));
     }
 
