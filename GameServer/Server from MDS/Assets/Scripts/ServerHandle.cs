@@ -41,8 +41,8 @@ public class ServerHandle
 
     public static void PlayerShootProjectile(int fromClient, Packet packet)
     {
-        Vector3 shootingDireciton = packet.ReadVector3();
-        Server.clients[fromClient].player.ShootProjectile(shootingDireciton);
+        Vector3 shootDirection = packet.ReadVector3();
+        Server.clients[fromClient].player.ShootProjectile(shootDirection);
     }
 
     //public static void UDPTestReceived(int fromClient, Packet packet)

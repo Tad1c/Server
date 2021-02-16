@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-
+using UnityEngine;
 
 public class ServerSend
 {
@@ -135,13 +135,14 @@ public class ServerSend
 
 
     #region ProjectileShit
-    public static void InstantiateBasicProjectile(BasicProjectile basicProjectile, int playerId)
+    public static void InstantiateBasicProjectile(BasicProjectile basicProjectile, int playerId, Vector3 finalDestination)
     {
         using (Packet packet = new Packet((int)ServerPackets.projectileShoot))
         {
             packet.Write(basicProjectile.id);
             packet.Write(playerId);
             packet.Write(basicProjectile.transform.position);
+            packet.Write(finalDestination);
 
             SendTCPDataToAll(packet);
         }
@@ -159,12 +160,12 @@ public class ServerSend
         }
     }    
     
-    public static void ProjectilePosition(BasicProjectile basicProjectile)
+    public static void ProjectilePosition(int id, Vector3 dest)
     {
         using (Packet packet = new Packet((int)ServerPackets.projectilePosition))
         {
-            packet.Write(basicProjectile.id);
-            packet.Write(basicProjectile.transform.position);
+            packet.Write(id);
+            packet.Write(dest);
 
             SendTCPDataToAll(packet);
         }

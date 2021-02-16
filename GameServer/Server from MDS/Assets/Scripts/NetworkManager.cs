@@ -40,7 +40,7 @@ public class NetworkManager : MonoBehaviour
 
     public BasicProjectile InstanciateProjectile(Transform origin)
     {
-        return Instantiate(projectilePrefab, origin.position + origin.forward, Quaternion.identity).GetComponent<BasicProjectile>();
+        return Instantiate(projectilePrefab, origin.position, Quaternion.identity).GetComponent<BasicProjectile>();
     }
 
 }

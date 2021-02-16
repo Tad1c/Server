@@ -17,8 +17,6 @@ public class Player : MonoBehaviour
     public float health;
     public float maxHealht = 100;
 
-    public int projectileForce = 200;
-
     private bool[] inputs;
     private float yVelocity = 0;
 
@@ -128,9 +126,9 @@ public class Player : MonoBehaviour
         }
     }
 
-    public void ShootProjectile(Vector3 viewDirection)
+    public void ShootProjectile(Vector3 shootDirection)
     {
-        NetworkManager.instance.InstanciateProjectile(shootOrigin).Init(viewDirection, projectileForce, id);
+        NetworkManager.instance.InstanciateProjectile(shootOrigin).Init(shootDirection, id);
     }
 
     public void HitByProjectile(Vector3 direction)

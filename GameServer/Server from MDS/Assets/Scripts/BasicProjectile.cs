@@ -7,17 +7,22 @@ public class BasicProjectile : MonoBehaviour
     public static Dictionary<int, BasicProjectile> projectileDic = new Dictionary<int, BasicProjectile>();
     public static int nextProjectileId = 1;
 
+    public float speed = 10.0f;
+    public float range = 30.0f;
+
     private Rigidbody rb;
     public int byPlayerId;
     public int id;
     public int damage;
 
-    private Vector3 initialForce;
+    private Vector3 finalDestination;
 
-    public void Init(Vector3 dir, int force, int playerId)
+    public float posUpdateRate = 0.2f;
+
+    public void Init(Vector3 dir, int playerId)
     {
         byPlayerId = playerId;
-        initialForce = dir * force;
+        finalDestination = transform.TransformPoint(dir * range);
     }
 
     // Start is called before the first frame update
@@ -25,28 +30,27 @@ public class BasicProjectile : MonoBehaviour
     {
   
         rb = GetComponent<Rigidbody>();
-     
-        rb.AddForce(initialForce);
 
         id = nextProjectileId;
         nextProjectileId++;
 
-        ServerSend.InstantiateBasicProjectile(this, byPlayerId);
         projectileDic.Add(id, this);
+        ServerSend.InstantiateBasicProjectile(this, byPlayerId, finalDestination);
+        // ServerSend.ProjectilePosition(id, finalDestination);
+        //InvokeRepeating("UpdatePosition", posUpdateRate, posUpdateRate);  //1s delay, repeat every 1s
 
-        Destroy(gameObject, 3f);
-        
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
-        ServerSend.ProjectilePosition(this);
-    }
+        float step = speed * Time.deltaTime; // calculate distance to move
+        transform.position = Vector3.MoveTowards(transform.position, finalDestination, step);
 
-    private void OnDestroy()
-    {
-        projectileDic.Remove(id);
-        ServerSend.DestroyBasicProjectile(this);
+        if (Vector3.Distance(transform.position, finalDestination) < 0.01f)
+        {
+            Destroy(gameObject);
+        }
+       
     }
 
     private void OnTriggerEnter(Collider other)
@@ -61,5 +65,13 @@ public class BasicProjectile : MonoBehaviour
         }
     }
 
-   
+
+    private void OnDestroy()
+    {
+        CancelInvoke();
+        projectileDic.Remove(id);
+        ServerSend.DestroyBasicProjectile(this);
+    }
+
+
 }
